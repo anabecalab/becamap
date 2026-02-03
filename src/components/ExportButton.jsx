@@ -344,6 +344,74 @@ export default function ExportButton({ scholarships }) {
         }
     }
 
+    const handleExportBecaBot = async () => {
+        console.log('🤖 Starting BecaBot export...')
+        try {
+            setExporting(true)
+
+            const filteredData = getFilteredScholarships()
+            console.log(`📊 Exporting ${filteredData.length} of ${scholarships.length} scholarships for BecaBot (filter: ${levelFilter})`)
+
+            if (!filteredData || filteredData.length === 0) {
+                alert('❌ No scholarships available for this level')
+                return
+            }
+
+            // Sort by ID
+            const sortedScholarships = [...filteredData].sort((a, b) => a.id.localeCompare(b.id))
+
+            // Generate structured format for BecaBot/ChatData
+            let content = `# BecaBot Knowledge Base\n`
+            content += `# Generated: ${new Date().toISOString()}\n`
+            content += `# Total: ${sortedScholarships.length} scholarships\n`
+            content += `# Format optimized for RAG/ChatData\n\n`
+
+            sortedScholarships.forEach(s => {
+                content += `---\n`
+                content += `CODIGO: ${s.id || 'N/A'}\n`
+                content += `BECA: ${s.beca_nombre || 'Sin nombre'}\n`
+                content += `UNIVERSIDAD: ${s.universidad || 'N/A'}\n`
+                content += `PAIS_DESTINO: ${s.pais || 'N/A'}\n`
+                content += `REGION: ${s.region || 'N/A'}\n`
+                content += `NIVEL: ${s.nivel || 'N/A'}\n`
+                content += `AREA: ${s.area || 'N/A'}\n`
+                content += `DISCIPLINA: ${s.disciplina || 'N/A'}\n`
+                content += `NACIONALIDADES_ACEPTADAS: ${s.nacionalidad || 'Todas las nacionalidades'}\n`
+                content += `BENEFICIOS: ${s.beneficios || 'Consultar convocatoria'}\n`
+                content += `REQUISITOS: ${s.requisitos || 'Consultar convocatoria'}\n`
+                content += `DEADLINE: ${s.ultima_deadline || s.siguiente_deadline || 'Consultar convocatoria'}\n`
+                content += `ESTADO: ${s.estado || 'Consultar'}\n`
+                content += `URL: ${s.url_origen && s.url_origen.startsWith('http') ? s.url_origen : 'Consultar portal oficial'}\n`
+            })
+
+            content += `---\n`
+
+            console.log('📝 BecaBot content generated, length:', content.length)
+
+            // Create blob and download
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            const filename = `becabot_source_${new Date().toISOString().split('T')[0]}.txt`
+            a.download = filename
+
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            URL.revokeObjectURL(url)
+
+            console.log('✅ BecaBot export completed successfully')
+            alert(`✅ Exported ${sortedScholarships.length} scholarships for BecaBot!\n\nSube este archivo como Source en ChatData.`)
+        } catch (error) {
+            console.error('❌ Export error:', error)
+            alert('❌ Export failed: ' + error.message)
+        } finally {
+            setExporting(false)
+            setShowMenu(false)
+        }
+    }
+
     return (
         <div className="relative">
             <button
@@ -426,6 +494,20 @@ export default function ExportButton({ scholarships }) {
                             <div>
                                 <div className="font-medium text-gray-900">Export as PDF</div>
                                 <div className="text-xs text-gray-500">Formatted document</div>
+                            </div>
+                        </button>
+
+                        <div className="border-t border-gray-200 my-1"></div>
+
+                        <button
+                            onClick={handleExportBecaBot}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
+                            style={{ backgroundColor: '#f0f0ff' }}
+                        >
+                            <span className="text-2xl">🤖</span>
+                            <div>
+                                <div className="font-medium text-gray-900">Export for BecaBot</div>
+                                <div className="text-xs text-gray-500">ChatData RAG format</div>
                             </div>
                         </button>
                     </div>
