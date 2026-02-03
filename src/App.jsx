@@ -3,6 +3,8 @@ import { supabase } from './lib/supabase'
 import ScholarshipEditor from './components/ScholarshipEditor'
 import ExportButton from './components/ExportButton'
 import Login from './components/Login'
+import AddScholarshipModal from './components/AddScholarshipModal'
+import NotificationBell from './components/NotificationBell'
 
 function App() {
     const [user, setUser] = useState(null)
@@ -11,9 +13,11 @@ function App() {
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+    const [estadoFilter, setEstadoFilter] = useState('all')
     const [levelFilter, setLevelFilter] = useState('all')
     const [selectedScholarship, setSelectedScholarship] = useState(null)
     const [stats, setStats] = useState(null)
+    const [showAddModal, setShowAddModal] = useState(false)
 
     // Check for existing session on mount
     useEffect(() => {
@@ -49,13 +53,18 @@ function App() {
             filtered = filtered.filter(s => s.status_validacion === statusFilter)
         }
 
+        // Estado filter (Activa/Cerrada/Contínua)
+        if (estadoFilter !== 'all') {
+            filtered = filtered.filter(s => s.estado === estadoFilter)
+        }
+
         // Level filter
         if (levelFilter !== 'all') {
             filtered = filtered.filter(s => s.nivel === levelFilter)
         }
 
         setFilteredScholarships(filtered)
-    }, [searchTerm, statusFilter, levelFilter, scholarships])
+    }, [searchTerm, statusFilter, estadoFilter, levelFilter, scholarships])
 
     const fetchScholarships = async () => {
         try {
@@ -179,6 +188,14 @@ function App() {
                                     Cerrar sesión
                                 </button>
                             </div>
+                            <NotificationBell />
+                            <button
+                                onClick={() => setShowAddModal(true)}
+                                className="px-4 py-2 rounded-lg font-semibold text-white transition-all hover:scale-105"
+                                style={{ backgroundColor: '#D5ED86', color: '#312C8E' }}
+                            >
+                                + Agregar Oportunidad
+                            </button>
                             <ExportButton scholarships={scholarships} />
                         </div>
                     </div>
@@ -214,7 +231,7 @@ function App() {
             {/* Filters */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                             <input
@@ -236,6 +253,19 @@ function App() {
                                 <option value="active">✓ Active</option>
                                 <option value="broken_link">✗ Broken Links</option>
                                 <option value="pending">⋯ Pending</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                            <select
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                value={estadoFilter}
+                                onChange={(e) => setEstadoFilter(e.target.value)}
+                            >
+                                <option value="all">All Estados</option>
+                                <option value="Activa">🟢 Activa</option>
+                                <option value="Cerrada">🔴 Cerrada</option>
+                                <option value="Contínua">🟡 Contínua</option>
                             </select>
                         </div>
                         <div>
@@ -333,6 +363,16 @@ function App() {
                     onSave={handleSave}
                 />
             )}
+
+            {/* Add Scholarship Modal */}
+            <AddScholarshipModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSuccess={() => {
+                    fetchScholarships()
+                    fetchStats()
+                }}
+            />
         </div>
     )
 }

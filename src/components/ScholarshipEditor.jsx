@@ -1,7 +1,10 @@
 import { useState } from 'react'
+import { supabase } from '../lib/supabase'
 
 export default function ScholarshipEditor({ scholarship, onClose, onSave }) {
     const [formData, setFormData] = useState({ ...scholarship })
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [deleting, setDeleting] = useState(false)
 
     const handleChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }))
@@ -14,6 +17,28 @@ export default function ScholarshipEditor({ scholarship, onClose, onSave }) {
     const handleSubmit = (e) => {
         e.preventDefault()
         onSave(formData)
+    }
+
+    const handleDelete = async () => {
+        setDeleting(true)
+        try {
+            const { error } = await supabase
+                .from('scholarships_master')
+                .delete()
+                .eq('id', scholarship.id)
+
+            if (error) throw error
+
+            console.log('✅ Scholarship deleted:', scholarship.id)
+            onClose() // Close modal
+            window.location.reload() // Refresh to update list and stats
+        } catch (err) {
+            console.error('Error deleting scholarship:', err)
+            alert('Error al eliminar la beca: ' + err.message)
+        } finally {
+            setDeleting(false)
+            setShowDeleteConfirm(false)
+        }
     }
 
     return (
@@ -334,22 +359,69 @@ export default function ScholarshipEditor({ scholarship, onClose, onSave }) {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                    <div className="mt-6 flex items-center justify-between pt-4 border-t border-gray-200">
+                        {/* Delete button on left */}
                         <button
                             type="button"
-                            onClick={onClose}
-                            className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-all"
                         >
-                            Cancel
+                            🗑️ Delete Scholarship
                         </button>
-                        <button
-                            type="submit"
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                        >
-                            Save Changes
-                        </button>
+
+                        {/* Cancel and Save on right */}
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                            >
+                                Save Changes
+                            </button>
+                        </div>
                     </div>
                 </form>
+
+                {/* Delete Confirmation Modal */}
+                {showDeleteConfirm && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-lg">
+                        <div className="bg-white rounded-lg shadow-xl p-6 max-w-md">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">⚠️ Confirmar Eliminación</h3>
+                            <p className="text-gray-700 mb-4">
+                                ¿Estás seguro de que deseas eliminar esta beca?
+                            </p>
+                            <div className="bg-gray-50 p-3 rounded mb-4">
+                                <p className="font-semibold text-gray-900">{scholarship.beca_nombre}</p>
+                                <p className="text-sm text-gray-600">ID: {scholarship.id}</p>
+                            </div>
+                            <p className="text-sm text-red-600 mb-6">
+                                Esta acción no se puede deshacer.
+                            </p>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                    disabled={deleting}
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    disabled={deleting}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
+                                >
+                                    {deleting ? 'Eliminando...' : 'Sí, Eliminar'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )
