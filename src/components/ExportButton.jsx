@@ -237,27 +237,35 @@ export default function ExportButton({ scholarships }) {
 
             // Helper function to add a field (label + value)
             const addField = (label, value) => {
-                if (!value) return
+                if (!value || value === 'null' || value === 'undefined') return
 
-                checkPageBreak(lineHeight)
+                // Ensure label has space
+                checkPageBreak(lineHeight * 2)
 
                 // Label in bold
                 doc.setFont('times', 'bold')
                 doc.setFontSize(11)
                 doc.text(`${label}:`, margin, yPos)
 
-                // Value in normal
+                // Value in normal - handle multi-line
                 doc.setFont('times', 'normal')
-                const lines = doc.splitTextToSize(String(value), pageWidth - margin * 2)
-                lines.forEach(line => {
-                    checkPageBreak(lineHeight)
-                    doc.text(line, margin + 30, yPos)
-                    yPos += lineHeight
-                })
+                const lines = doc.splitTextToSize(String(value), pageWidth - margin * 2 - 10)
 
-                // Reset to label position for next field
-                yPos -= lineHeight
-                yPos += lineHeight
+                // First line on same horizontal as label
+                if (lines.length > 0) {
+                    doc.text(lines[0], margin + 35, yPos)
+                    yPos += lineHeight
+                }
+
+                // Subsequent lines indented
+                for (let i = 1; i < lines.length; i++) {
+                    checkPageBreak(lineHeight)
+                    doc.text(lines[i], margin + 35, yPos)
+                    yPos += lineHeight
+                }
+
+                // Small space after field
+                yPos += 1
             }
 
             // Sort scholarships by ID (like original: AE-01, AE-03, etc.)
@@ -265,8 +273,19 @@ export default function ExportButton({ scholarships }) {
                 return a.id.localeCompare(b.id)
             })
 
+            console.log(`📋 Total scholarships to export: ${sortedScholarships.length}`)
+            console.log(`📋 First ID: ${sortedScholarships[0]?.id}, Last ID: ${sortedScholarships[sortedScholarships.length - 1]?.id}`)
+
             // Generate PDF content - exactly like original format
             sortedScholarships.forEach((s, index) => {
+                // Log progress
+                if (index === 0) {
+                    console.log(`🔵 Starting scholarship #${index + 1}: ${s.id}`)
+                }
+                if ((index + 1) % 10 === 0) {
+                    console.log(`📄 Processing scholarship #${index + 1}/${sortedScholarships.length}: ${s.id}`)
+                }
+
                 // Add each field in the exact order from original PDF
                 addField('CÓDIGO', s.id)
                 addField('PAÍS', s.pais)
@@ -299,11 +318,15 @@ export default function ExportButton({ scholarships }) {
                 doc.text('-----', margin, yPos)
                 yPos += lineHeight * 2 // Extra space before next scholarship
 
-                // Progress logging every 50 scholarships
-                if ((index + 1) % 50 === 0) {
-                    console.log(`📄 Processed ${index + 1}/${sortedScholarships.length} scholarships`)
+                // Final scholarship log
+                if (index === sortedScholarships.length - 1) {
+                    console.log(`✅ FINISHED scholarship #${index + 1}/${sortedScholarships.length}: ${s.id}`)
+                    console.log(`📊 Total pages in PDF: ${doc.internal.pages.length - 1}`)
                 }
             })
+
+            console.log(`🎉 All ${sortedScholarships.length} scholarships processed successfully!`)
+            console.log(`📄 Final PDF has ${doc.internal.pages.length - 1} pages`)
 
             // Save PDF
             const filename = `becas_${new Date().toISOString().split('T')[0]}.pdf`
