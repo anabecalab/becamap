@@ -1,10 +1,25 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 export default function LinkRepairButton({ scholarships, onRepairComplete }) {
     const [repairing, setRepairing] = useState(false)
     const [showMenu, setShowMenu] = useState(false)
     const [progress, setProgress] = useState({ current: 0, total: 0, status: '' })
+    const menuRef = useRef(null)
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        if (!showMenu) return
+
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setShowMenu(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [showMenu])
 
     const verifyURL = async (url) => {
         try {
@@ -168,7 +183,7 @@ export default function LinkRepairButton({ scholarships, onRepairComplete }) {
             </button>
 
             {showMenu && (
-                <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                <div ref={menuRef} className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
                     <div className="py-2">
                         <button
                             onClick={handleVerifyAll}

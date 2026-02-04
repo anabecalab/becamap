@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { } from '../lib/supabase'
 import jsPDF from 'jspdf'
 
@@ -6,6 +6,21 @@ export default function ExportButton({ scholarships }) {
     const [showMenu, setShowMenu] = useState(false)
     const [exporting, setExporting] = useState(false)
     const [levelFilter, setLevelFilter] = useState('all')
+    const menuRef = useRef(null)
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        if (!showMenu) return
+
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setShowMenu(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [showMenu])
 
     // Filter scholarships by level
     const getFilteredScholarships = () => {
@@ -432,7 +447,7 @@ export default function ExportButton({ scholarships }) {
                         className="fixed inset-0 z-10"
                         onClick={() => setShowMenu(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
+                    <div ref={menuRef} className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-20">
                         {/* Level Filter */}
                         <div className="px-4 py-3 border-b border-gray-200">
                             <label className="block text-xs font-medium text-gray-700 mb-2">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 export default function AddScholarshipModal({ isOpen, onClose, onSuccess }) {
@@ -31,6 +31,21 @@ export default function AddScholarshipModal({ isOpen, onClose, onSuccess }) {
     })
     const [generatedId, setGeneratedId] = useState('')
     const [error, setError] = useState('')
+    const modalRef = useRef(null)
+
+    // Close modal when clicking outside
+    useEffect(() => {
+        if (!isOpen) return
+
+        const handleClickOutside = (event) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+                handleClose()
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [isOpen])
 
     // Country options with codes
     const countries = [
@@ -208,7 +223,7 @@ export default function AddScholarshipModal({ isOpen, onClose, onSuccess }) {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-8">
+            <div ref={modalRef} className="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-8">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-200" style={{ backgroundColor: '#312C8E' }}>
                     <div className="flex items-center justify-between">
