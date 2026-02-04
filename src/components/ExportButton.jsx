@@ -397,9 +397,8 @@ export default function ExportButton({ scholarships }) {
                 content += `DEADLINE: ${s.ultima_deadline || s.siguiente_deadline || 'Consultar convocatoria'}\n`
                 content += `ESTADO: ${s.estado || 'Consultar'}\n`
                 content += `URL: ${s.url_origen && s.url_origen.startsWith('http') ? s.url_origen : 'Consultar portal oficial'}\n`
+                content += `---\n\n`  // Close EACH scholarship with separator + blank line
             })
-
-            content += `---\n`
 
             console.log('📝 BecaBot content generated, length:', content.length)
 
