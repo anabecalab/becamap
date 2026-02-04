@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import ScholarshipEditor from './components/ScholarshipEditor'
 import ExportButton from './components/ExportButton'
+import LinkRepairButton from './components/LinkRepairButton'
 import Login from './components/Login'
 import AddScholarshipModal from './components/AddScholarshipModal'
 import NotificationBell from './components/NotificationBell'
@@ -196,6 +197,13 @@ function App() {
                             >
                                 + Agregar Oportunidad
                             </button>
+                            <LinkRepairButton
+                                scholarships={scholarships}
+                                onRepairComplete={() => {
+                                    fetchScholarships()
+                                    fetchStats()
+                                }}
+                            />
                             <ExportButton scholarships={scholarships} />
                         </div>
                     </div>
