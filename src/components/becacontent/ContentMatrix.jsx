@@ -48,6 +48,69 @@ export default function ContentMatrix({ onEditClick }) {
         }
     }
 
+    const importFromExcel = async (event) => {
+        const file = event.target.files[0]
+        if (!file) return
+
+        try {
+            const reader = new FileReader()
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result)
+                    const workbook = XLSX.read(data, { type: 'array' })
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet)
+
+                    if (jsonData.length === 0) {
+                        alert('❌ El archivo Excel está vacío')
+                        return
+                    }
+
+                    // Transform Excel data to match database schema
+                    const recordsToInsert = jsonData.map(row => ({
+                        brand: row['Marca'] || 'BecaLab',
+                        content_status: row['Estado'] || 'Idea',
+                        format: row['Formato'] || 'Reel',
+                        red_social: row['Red Social'] || 'Instagram',
+                        funnel_stage: row['Etapa Embudo'] || 'TOFU',
+                        goal_pillar: row['Pilar Objetivo'] || 'Awareness',
+                        producto: row['Producto'] || 'BecaLab+',
+                        hook_text: row['Hook/Título'] || '',
+                        caption_ai: row['Caption/Descripción'] || '',
+                        manychat_keyword: row['ManyChat Keyword'] || '',
+                        manychat_automation: row['ManyChat Automation'] || 'Simple (solo responder comentarios)',
+                        freebie_link: row['Freebie Link'] || '',
+                        ref_url: row['URL Referencia'] || '',
+                        upsell_target: row['Upsell Target'] || 'BecaLab+',
+                        scheduled_date: row['Fecha Programada'] || null,
+                        priority: row['Prioridad'] || 2,
+                    }))
+
+                    // Insert into database
+                    const { data: insertedData, error } = await supabase
+                        .from('becacontent_matrix')
+                        .insert(recordsToInsert)
+                        .select()
+
+                    if (error) throw error
+
+                    alert(`✅ ${insertedData.length} piezas importadas exitosamente!`)
+                    await fetchContent()
+                } catch (error) {
+                    console.error('Error parsing Excel:', error)
+                    alert('❌ Error al procesar el archivo: ' + error.message)
+                }
+            }
+            reader.readAsArrayBuffer(file)
+        } catch (error) {
+            console.error('Error importing Excel:', error)
+            alert('❌ Error al importar: ' + error.message)
+        }
+
+        // Reset file input
+        event.target.value = ''
+    }
+
     const exportToExcel = () => {
         // Prepare data for Excel - flatten all columns
         const excelData = filteredContent.map(item => ({
@@ -177,18 +240,32 @@ export default function ContentMatrix({ onEditClick }) {
                     </div>
                 </div>
 
-                <button
-                    onClick={exportToExcel}
-                    disabled={filteredContent.length === 0}
-                    className="px-6 py-2 rounded-lg font-semibold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    style={{ backgroundColor: '#4B50D0' }}
-                    title="Exportar datos visibles a Excel"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Exportar a Excel
-                </button>
+                <div className="flex gap-3">
+                    <label className="px-6 py-2 rounded-lg font-semibold text-white transition-all hover:scale-105 cursor-pointer flex items-center gap-2" style={{ backgroundColor: '#D5ED86', color: '#312C8E' }}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Importar desde Excel
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls"
+                            onChange={importFromExcel}
+                            className="hidden"
+                        />
+                    </label>
+                    <button
+                        onClick={exportToExcel}
+                        disabled={filteredContent.length === 0}
+                        className="px-6 py-2 rounded-lg font-semibold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        style={{ backgroundColor: '#4B50D0' }}
+                        title="Exportar datos visibles a Excel"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Exportar a Excel
+                    </button>
+                </div>
             </div>
 
             <div className="text-sm text-gray-600 mb-4">
@@ -240,11 +317,20 @@ export default function ContentMatrix({ onEditClick }) {
                                             {item.scheduled_date ? new Date(item.scheduled_date).toLocaleDateString() : '—'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-1">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <span key={i} className={i < (item.priority || 0) ? 'text-yellow-400' : 'text-gray-300'}>★</span>
-                                                ))}
-                                            </div>
+                                            {(() => {
+                                                const priority = item.priority || 2
+                                                const badges = {
+                                                    1: { text: 'Alta', bg: 'bg-red-100', color: 'text-red-800', emoji: '🔴' },
+                                                    2: { text: 'Media', bg: 'bg-yellow-100', color: 'text-yellow-800', emoji: '🟡' },
+                                                    3: { text: 'Baja', bg: 'bg-green-100', color: 'text-green-800', emoji: '🟢' }
+                                                }
+                                                const badge = badges[priority] || badges[2]
+                                                return (
+                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${badge.bg} ${badge.color}`}>
+                                                        {badge.emoji} {badge.text}
+                                                    </span>
+                                                )
+                                            })()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                                             <button

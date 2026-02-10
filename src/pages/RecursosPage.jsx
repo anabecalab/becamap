@@ -1,4 +1,9 @@
+import { useState } from 'react'
+import FileUpload from '../components/FileUpload'
+
 export default function RecursosPage() {
+    const [showUpload, setShowUpload] = useState(false)
+
     const guides = [
         {
             title: 'Guía Carta de Motivación BL+',
@@ -27,19 +32,54 @@ export default function RecursosPage() {
         }
     ]
 
+    const handleUploadComplete = (data) => {
+        alert(`✅ Recurso subido exitosamente!\nURL: ${data.url}`)
+        setShowUpload(false)
+        // Aquí podrías agregar el recurso a una base de datos o actualizar el estado
+    }
+
     return (
         <div className="flex-1 overflow-auto">
             {/* Header */}
             <header className="shadow-sm border-b border-gray-200" style={{ backgroundColor: '#312C8E' }}>
                 <div className="px-6 py-6">
-                    <h1 className="text-3xl font-bold text-white">Recursos</h1>
-                    <p className="mt-1 text-sm" style={{ color: '#D5ED86' }}>
-                        Biblioteca de guías, infografías y videos
-                    </p>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white">Recursos</h1>
+                            <p className="mt-1 text-sm" style={{ color: '#D5ED86' }}>
+                                Biblioteca de guías, infografías y videos
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setShowUpload(!showUpload)}
+                            className="px-6 py-3 rounded-lg font-semibold text-white transition-all hover:scale-105"
+                            style={{ backgroundColor: '#D5ED86', color: '#312C8E' }}
+                        >
+                            {showUpload ? '✖ Cancelar' : '📤 Subir Recurso'}
+                        </button>
+                    </div>
                 </div>
             </header>
 
             <div className="p-6 space-y-8">
+                {/* Upload Section */}
+                {showUpload && (
+                    <section className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
+                        <h2 className="text-xl font-bold mb-4" style={{ color: '#312C8E' }}>
+                            📤 Subir Nuevo Recurso
+                        </h2>
+                        <FileUpload
+                            bucketName="recursos"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.mp4,.mov"
+                            maxSizeMB={100}
+                            onUploadComplete={handleUploadComplete}
+                        />
+                        <p className="text-sm text-gray-600 mt-4">
+                            💡 Los archivos se subirán a Supabase Storage y estarán disponibles públicamente.
+                        </p>
+                    </section>
+                )}
+
                 {/* Guías BecaLab */}
                 <section>
                     <h2 className="text-2xl font-bold mb-4" style={{ color: '#312C8E' }}>Guías BecaLab</h2>

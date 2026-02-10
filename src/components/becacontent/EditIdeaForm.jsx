@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import FileUpload from '../FileUpload'
 
 export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }) {
     const [formData, setFormData] = useState({
@@ -19,7 +20,7 @@ export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }
         ref_urls: [''],
         upsell_target: 'BecaLab+',
         scheduled_date: '',
-        priority: 3,
+        priority: 2,
     })
     const [loading, setLoading] = useState(false)
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -51,7 +52,7 @@ export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }
                 ref_urls: contentData.ref_url ? contentData.ref_url.split(',') : [''],
                 upsell_target: contentData.upsell_target || 'BecaLab+',
                 scheduled_date: contentData.scheduled_date || '',
-                priority: contentData.priority || 3,
+                priority: contentData.priority || 2,
             })
         }
     }, [contentData])
@@ -325,11 +326,9 @@ export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }
                                 onChange={handleChange}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
                             >
-                                <option value="1">1 - Baja</option>
-                                <option value="2">2</option>
-                                <option value="3">3 - Media</option>
-                                <option value="4">4</option>
-                                <option value="5">5 - Crítica</option>
+                                <option value="3">🟢 Baja</option>
+                                <option value="2">🟡 Media</option>
+                                <option value="1">🔴 Alta</option>
                             </select>
                         </div>
                     </div>
@@ -412,25 +411,41 @@ export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }
                         </div>
                         <div className="space-y-2">
                             {formData.freebie_items.map((item, index) => (
-                                <div key={index} className="flex gap-2 items-center">
-                                    <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 min-w-[70px] text-center">
-                                        {item.type === 'file' ? '📎 Archivo' : '🔗 Link'}
-                                    </span>
-                                    <input
-                                        type={item.type === 'link' ? 'url' : 'text'}
-                                        value={item.value}
-                                        onChange={(e) => handleFreebieItemChange(index, e.target.value)}
-                                        placeholder={item.type === 'link' ? 'https://...' : 'nombre_archivo.pdf'}
-                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                                    />
-                                    {formData.freebie_items.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveFreebieItem(index)}
-                                            className="px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-all"
-                                        >
-                                            🗑️
-                                        </button>
+                                <div key={index} className="space-y-2">
+                                    <div className="flex gap-2 items-center">
+                                        <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 min-w-[70px] text-center">
+                                            {item.type === 'file' ? '📎 Archivo' : '🔗 Link'}
+                                        </span>
+                                        {formData.freebie_items.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveFreebieItem(index)}
+                                                className="px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-all ml-auto"
+                                            >
+                                                🗑️
+                                            </button>
+                                        )}
+                                    </div>
+                                    {item.type === 'file' ? (
+                                        <FileUpload
+                                            bucketName="becacontent-freebies"
+                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
+                                            maxSizeMB={50}
+                                            onUploadComplete={(data) => {
+                                                handleFreebieItemChange(index, data.url)
+                                            }}
+                                        />
+                                    ) : (
+                                        <input
+                                            type="url"
+                                            value={item.value}
+                                            onChange={(e) => handleFreebieItemChange(index, e.target.value)}
+                                            placeholder="https://..."
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
+                                        />
+                                    )}
+                                    {item.value && (
+                                        <p className="text-xs text-gray-500 truncate">✅ {item.value}</p>
                                     )}
                                 </div>
                             ))}

@@ -184,7 +184,7 @@ export default function BecaMapPage() {
             </header>
 
             {/* Filters */}
-            <div className="px-6 py-6">
+            <div className="sticky top-0 z-10 bg-gray-50 px-6 py-6">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                         <div>
