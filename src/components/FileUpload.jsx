@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../lib/supabase'
 
 export default function FileUpload({
     bucketName = 'becacontent-freebies',
@@ -96,8 +96,8 @@ export default function FileUpload({
     return (
         <div
             className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all ${dragActive
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 hover:border-gray-400'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-300 hover:border-gray-400'
                 } ${uploading ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
