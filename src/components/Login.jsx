@@ -58,13 +58,13 @@ export default function Login({ onLoginSuccess }) {
                         <img src="/logo.png" alt="BecaLab Logo" className="h-20 w-20" />
                     </div>
                     <h1 className="text-4xl font-bold mb-2" style={{ color: '#312C8E' }}>
-                        BecaMap
+                        BecaLab
                     </h1>
                     <p className="text-sm" style={{ color: '#4B50D0' }}>
                         Admin Panel
                     </p>
                     <div className="mt-2 text-xs text-gray-600">
-                        La base de becas más grande de LATAM by BecaLab
+                        Transforma tu dedicación en oportunidades
                     </div>
                 </div>
 
