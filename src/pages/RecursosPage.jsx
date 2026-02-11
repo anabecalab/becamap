@@ -2,7 +2,7 @@ import { useState } from 'react'
 import FileUpload from '../components/FileUpload'
 
 export default function RecursosPage() {
-    const [showUpload, setShowUpload] = useState(false)
+    const [showUploadSection, setShowUploadSection] = useState(null) // 'guias', 'infografias', 'imagenes', or null
 
     const guides = [
         {
@@ -32,9 +32,9 @@ export default function RecursosPage() {
         }
     ]
 
-    const handleUploadComplete = (data) => {
-        alert(`✅ Recurso subido exitosamente!\nURL: ${data.url}`)
-        setShowUpload(false)
+    const handleUploadComplete = (type) => (data) => {
+        alert(`✅ ${type} subido exitosamente!\nURL: ${data.url}`)
+        setShowUploadSection(null)
         // Aquí podrías agregar el recurso a una base de datos o actualizar el estado
     }
 
@@ -43,46 +43,47 @@ export default function RecursosPage() {
             {/* Header */}
             <header className="shadow-sm border-b border-gray-200" style={{ backgroundColor: '#312C8E' }}>
                 <div className="px-6 py-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold text-white">Recursos</h1>
-                            <p className="mt-1 text-sm" style={{ color: '#D5ED86' }}>
-                                Biblioteca de guías, infografías y videos
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => setShowUpload(!showUpload)}
-                            className="px-6 py-3 rounded-lg font-semibold text-white transition-all hover:scale-105"
-                            style={{ backgroundColor: '#D5ED86', color: '#312C8E' }}
-                        >
-                            {showUpload ? '✖ Cancelar' : '📤 Subir Recurso'}
-                        </button>
+                    <div>
+                        <h1 className="text-3xl font-bold text-white">Recursos</h1>
+                        <p className="mt-1 text-sm" style={{ color: '#D5ED86' }}>
+                            Biblioteca de guías, infografías e imágenes para BecaLab
+                        </p>
                     </div>
                 </div>
             </header>
 
             <div className="p-6 space-y-8">
-                {/* Upload Section */}
-                {showUpload && (
-                    <section className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
-                        <h2 className="text-xl font-bold mb-4" style={{ color: '#312C8E' }}>
-                            📤 Subir Nuevo Recurso
-                        </h2>
-                        <FileUpload
-                            bucketName="recursos"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.mp4,.mov"
-                            maxSizeMB={100}
-                            onUploadComplete={handleUploadComplete}
-                        />
-                        <p className="text-sm text-gray-600 mt-4">
-                            💡 Los archivos se subirán a Supabase Storage y estarán disponibles públicamente.
-                        </p>
-                    </section>
-                )}
-
                 {/* Guías BecaLab */}
                 <section>
-                    <h2 className="text-2xl font-bold mb-4" style={{ color: '#312C8E' }}>Guías BecaLab</h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-2xl font-bold" style={{ color: '#312C8E' }}>📚 Guías BecaLab</h2>
+                        <button
+                            onClick={() => setShowUploadSection(showUploadSection === 'guias' ? null : 'guias')}
+                            className="px-4 py-2 rounded-lg font-semibold text-white transition-all hover:scale-105"
+                            style={{ backgroundColor: '#4B50D0' }}
+                        >
+                            {showUploadSection === 'guias' ? '✖ Cancelar' : '📤 Subir Guía'}
+                        </button>
+                    </div>
+
+                    {/* Upload Section for Guías */}
+                    {showUploadSection === 'guias' && (
+                        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-4">
+                            <h3 className="text-lg font-bold mb-3" style={{ color: '#312C8E' }}>
+                                📤 Subir Nueva Guía
+                            </h3>
+                            <FileUpload
+                                bucketName="recursos-guias"
+                                accept=".pdf,.doc,.docx"
+                                maxSizeMB={50}
+                                onUploadComplete={handleUploadComplete('Guía')}
+                            />
+                            <p className="text-sm text-gray-600 mt-4">
+                                💡 Formatos aceptados: PDF, Word (DOC, DOCX)
+                            </p>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {guides.map((guide, idx) => (
                             <a
@@ -111,36 +112,83 @@ export default function RecursosPage() {
                     </div>
                 </section>
 
-                {/* Infografías - Empty Section */}
+                {/* Infografías */}
                 <section>
-                    <h2 className="text-2xl font-bold mb-4" style={{ color: '#312C8E' }}>Infografías</h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-2xl font-bold" style={{ color: '#312C8E' }}>📊 Infografías</h2>
+                        <button
+                            onClick={() => setShowUploadSection(showUploadSection === 'infografias' ? null : 'infografias')}
+                            className="px-4 py-2 rounded-lg font-semibold text-white transition-all hover:scale-105"
+                            style={{ backgroundColor: '#4B50D0' }}
+                        >
+                            {showUploadSection === 'infografias' ? '✖ Cancelar' : '📤 Subir Infografía'}
+                        </button>
+                    </div>
+
+                    {/* Upload Section for Infografías */}
+                    {showUploadSection === 'infografias' && (
+                        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-4">
+                            <h3 className="text-lg font-bold mb-3" style={{ color: '#312C8E' }}>
+                                📤 Subir Nueva Infografía
+                            </h3>
+                            <FileUpload
+                                bucketName="recursos-infografias"
+                                accept=".png,.jpg,.jpeg,.webp,.svg"
+                                maxSizeMB={20}
+                                onUploadComplete={handleUploadComplete('Infografía')}
+                            />
+                            <p className="text-sm text-gray-600 mt-4">
+                                💡 Formatos aceptados: PNG, JPG, WEBP, SVG
+                            </p>
+                        </div>
+                    )}
+
                     <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
                         <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: '#D5ED86' }}>
                             <span className="text-2xl">📊</span>
                         </div>
                         <p className="text-gray-500">No hay infografías disponibles</p>
+                        <p className="text-sm text-gray-400 mt-2">Usa el botón de arriba para subir la primera infografía</p>
                     </div>
                 </section>
 
-                {/* Videos - Empty Section */}
+                {/* Imágenes y Logos */}
                 <section>
-                    <h2 className="text-2xl font-bold mb-4" style={{ color: '#312C8E' }}>Videos</h2>
-                    <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
-                        <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: '#D5ED86' }}>
-                            <span className="text-2xl">🎥</span>
-                        </div>
-                        <p className="text-gray-500">No hay videos disponibles</p>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-2xl font-bold" style={{ color: '#312C8E' }}>🖼️ Imágenes y Logos</h2>
+                        <button
+                            onClick={() => setShowUploadSection(showUploadSection === 'imagenes' ? null : 'imagenes')}
+                            className="px-4 py-2 rounded-lg font-semibold text-white transition-all hover:scale-105"
+                            style={{ backgroundColor: '#4B50D0' }}
+                        >
+                            {showUploadSection === 'imagenes' ? '✖ Cancelar' : '📤 Subir Imagen'}
+                        </button>
                     </div>
-                </section>
 
-                {/* Templates de Contenido - Empty Section */}
-                <section>
-                    <h2 className="text-2xl font-bold mb-4" style={{ color: '#312C8E' }}>Templates de Contenido</h2>
+                    {/* Upload Section for Imágenes y Logos */}
+                    {showUploadSection === 'imagenes' && (
+                        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-4">
+                            <h3 className="text-lg font-bold mb-3" style={{ color: '#312C8E' }}>
+                                📤 Subir Nueva Imagen o Logo
+                            </h3>
+                            <FileUpload
+                                bucketName="recursos-imagenes"
+                                accept=".png,.jpg,.jpeg,.webp,.svg"
+                                maxSizeMB={10}
+                                onUploadComplete={handleUploadComplete('Imagen')}
+                            />
+                            <p className="text-sm text-gray-600 mt-4">
+                                💡 Formatos aceptados: PNG, JPG, WEBP, SVG
+                            </p>
+                        </div>
+                    )}
+
                     <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
                         <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: '#D5ED86' }}>
-                            <span className="text-2xl">📝</span>
+                            <span className="text-2xl">🖼️</span>
                         </div>
-                        <p className="text-gray-500">No hay templates disponibles</p>
+                        <p className="text-gray-500">No hay imágenes disponibles</p>
+                        <p className="text-sm text-gray-400 mt-2">Usa el botón de arriba para subir la primera imagen</p>
                     </div>
                 </section>
             </div>
