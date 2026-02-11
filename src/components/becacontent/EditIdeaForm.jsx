@@ -58,9 +58,38 @@ export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }
     }, [contentData])
 
     useEffect(() => {
+        if (!contentData) return
+
+        // Parse original freebie items for comparison
+        const originalFreebieItems = contentData.freebie_link
+            ? contentData.freebie_link.split(',').map(item => ({
+                type: item.startsWith('file:') ? 'file' : 'link',
+                value: item.replace('file:', '')
+            }))
+            : [{ type: 'link', value: '' }]
+
+        // Parse original ref urls for comparison
+        const originalRefUrls = contentData.ref_url ? contentData.ref_url.split(',') : ['']
+
         const hasChanges =
-            formData.hook_text.trim() !== (contentData?.hook_text || '') ||
-            formData.caption_ai.trim() !== (contentData?.caption_ai || '')
+            formData.brand !== (contentData.brand || 'BecaLab') ||
+            formData.content_status !== (contentData.content_status || 'Idea') ||
+            formData.format !== (contentData.format || 'Reel') ||
+            formData.funnel_stage !== (contentData.funnel_stage || 'TOFU') ||
+            formData.goal_pillar !== (contentData.goal_pillar || 'Awareness') ||
+            formData.producto !== (contentData.producto || 'BecaLab+') ||
+            formData.red_social !== (contentData.red_social || 'Instagram') ||
+            formData.manychat_automation !== (contentData.manychat_automation || 'Simple (solo responder comentarios)') ||
+            formData.hook_text.trim() !== (contentData.hook_text || '').trim() ||
+            formData.caption_ai.trim() !== (contentData.caption_ai || '').trim() ||
+            formData.manychat_keyword.trim() !== (contentData.manychat_keyword || '').trim() ||
+            formData.canva_link.trim() !== (contentData.canva_link || '').trim() ||
+            formData.upsell_target !== (contentData.upsell_target || 'BecaLab+') ||
+            formData.scheduled_date !== (contentData.scheduled_date || '') ||
+            formData.priority !== (contentData.priority || 2) ||
+            JSON.stringify(formData.freebie_items) !== JSON.stringify(originalFreebieItems) ||
+            JSON.stringify(formData.ref_urls) !== JSON.stringify(originalRefUrls)
+
         setHasUnsavedChanges(hasChanges)
     }, [formData, contentData])
 
