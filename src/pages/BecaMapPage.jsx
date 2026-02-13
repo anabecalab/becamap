@@ -5,6 +5,7 @@ import ExportButton from '../components/ExportButton'
 import LinkRepairButton from '../components/LinkRepairButton'
 import AddScholarshipModal from '../components/AddScholarshipModal'
 import NotificationBell from '../components/NotificationBell'
+import BulkUrlUpdate from '../components/BulkUrlUpdate'
 
 export default function BecaMapPage() {
     const [scholarships, setScholarships] = useState([])
@@ -17,6 +18,7 @@ export default function BecaMapPage() {
     const [selectedScholarship, setSelectedScholarship] = useState(null)
     const [stats, setStats] = useState(null)
     const [showAddModal, setShowAddModal] = useState(false)
+    const [showBulkUrlModal, setShowBulkUrlModal] = useState(false)
 
     useEffect(() => {
         fetchScholarships()
@@ -143,6 +145,12 @@ export default function BecaMapPage() {
                                 style={{ backgroundColor: '#D5ED86', color: '#312C8E' }}
                             >
                                 + Agregar Oportunidad
+                            </button>
+                            <button
+                                onClick={() => setShowBulkUrlModal(true)}
+                                className="px-4 py-2 rounded-lg font-semibold transition-all hover:scale-105 border-2 border-white/30 text-white hover:bg-white/10"
+                            >
+                                🔗 URLs en masa
                             </button>
                             <LinkRepairButton
                                 scholarships={scholarships}
@@ -320,6 +328,16 @@ export default function BecaMapPage() {
             )}
 
             {/* Add Scholarship Modal */}
+            {/* Bulk URL Update Modal */}
+            <BulkUrlUpdate
+                isOpen={showBulkUrlModal}
+                onClose={() => setShowBulkUrlModal(false)}
+                onSuccess={() => {
+                    fetchScholarships()
+                    fetchStats()
+                }}
+            />
+
             <AddScholarshipModal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
