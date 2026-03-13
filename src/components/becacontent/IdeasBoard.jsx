@@ -25,7 +25,6 @@ export default function IdeasBoard({ onConvertToContent }) {
             const { data, error } = await supabase
                 .from('becacontent_ideas_board')
                 .select('*')
-                .eq('converted_to_content', false)
                 .order('priority', { ascending: false })
                 .order('created_at', { ascending: false })
 
@@ -155,7 +154,7 @@ export default function IdeasBoard({ onConvertToContent }) {
             {/* New Idea Form */}
             {showNewForm && (
                 <form onSubmit={handleAddIdea} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h3 className="text-lg font-bold mb-4" style={{ color: '#312C8E' }}>Nueva Idea para Mood Board</h3>
+                    <h3 className="text-lg font-bold mb-4" style={{ color: '#312C8E' }}>Nuevo Contenido — Agregar Idea</h3>
 
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

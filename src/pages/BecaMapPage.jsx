@@ -39,7 +39,11 @@ export default function BecaMapPage() {
         }
 
         if (statusFilter !== 'all') {
-            filtered = filtered.filter(s => s.status_validacion === statusFilter)
+            if (statusFilter === 'broken_link') {
+                filtered = filtered.filter(s => s.url_status === 'broken' || s.status_validacion === 'broken_link')
+            } else {
+                filtered = filtered.filter(s => s.status_validacion === statusFilter && s.url_status !== 'broken')
+            }
         }
 
         if (estadoFilter !== 'all') {
@@ -89,13 +93,36 @@ export default function BecaMapPage() {
 
     const handleSave = async (updatedScholarship) => {
         try {
+            const payload = { ...updatedScholarship }
+            let markedAsRepaired = false
+
+            // Auto-repair logic if it was broken
+            if (selectedScholarship && selectedScholarship.url_status === 'broken') {
+                const urlChanged = payload.url_origen !== selectedScholarship.url_origen
+                const setAsActive = payload.status_validacion === 'active'
+
+                if (urlChanged || setAsActive) {
+                    payload.url_status = 'working'
+                    markedAsRepaired = true
+                }
+            }
+
             const { data, error } = await supabase
                 .from('scholarships_master')
-                .update(updatedScholarship)
-                .eq('id', updatedScholarship.id)
+                .update(payload)
+                .eq('id', payload.id)
                 .select()
 
             if (error) throw error
+
+            // Clear notification if we fixed it
+            if (markedAsRepaired) {
+                await supabase
+                    .from('notification_queue')
+                    .update({ is_read: true })
+                    .eq('scholarship_id', payload.id)
+                    .eq('notification_type', 'broken_url')
+            }
 
             await fetchScholarships()
             await fetchStats()
@@ -107,7 +134,16 @@ export default function BecaMapPage() {
         }
     }
 
-    const getStatusBadge = (status) => {
+    const getStatusBadge = (scholarship) => {
+        if (scholarship.url_status === 'broken') {
+            return (
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    ✗ Broken Link
+                </span>
+            )
+        }
+
+        const status = scholarship.status_validacion;
         const badges = {
             'active': 'bg-green-100 text-green-800',
             'broken_link': 'bg-red-100 text-red-800',
@@ -296,7 +332,7 @@ export default function BecaMapPage() {
                                                 {scholarship.estado === 'Contínua' && <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">Contínua</span>}
                                                 {!scholarship.estado && '-'}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(scholarship.status_validacion)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">{getStatusBadge(scholarship)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <button
                                                     onClick={(e) => {

@@ -4,12 +4,22 @@ import { useState } from 'react'
 export default function Sidebar({ user, onLogout }) {
     const [isOpen, setIsOpen] = useState(false)
 
-    const navItems = [
+    const isAgency = user?.role === 'agency'
+
+    const adminNavItems = [
         { path: '/', label: 'Dashboard', icon: '📊' },
         { path: '/becamap', label: 'BecaMap', icon: '🗺️' },
         { path: '/becacontent', label: 'BecaContent', icon: '✨' },
         { path: '/recursos', label: 'Recursos', icon: '📚' },
+        { path: '/conexar-onboarding', label: 'Onboarding BecaLab', icon: '🚀' },
     ]
+
+    const agencyNavItems = [
+        { path: '/conexar-onboarding', label: 'Onboarding BecaLab', icon: '🚀' },
+        { path: '/conexar-content', label: 'BecaContent CONEXAR', icon: '🎨' },
+    ]
+
+    const navItems = isAgency ? agencyNavItems : adminNavItems
 
     return (
         <>
@@ -30,7 +40,7 @@ export default function Sidebar({ user, onLogout }) {
 
             {/* Sidebar */}
             <div
-                className={`fixed lg:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+                className={`fixed lg:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out border-r border-[#D5ED86]/30 shadow-[4px_0_24px_rgba(213,237,134,0.1)] ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
                     }`}
                 style={{ backgroundColor: '#312C8E' }}
             >
