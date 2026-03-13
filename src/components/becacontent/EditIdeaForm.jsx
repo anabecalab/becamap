@@ -4,92 +4,86 @@ import FileUpload from '../FileUpload'
 
 export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }) {
     const [formData, setFormData] = useState({
-        brand: 'BecaLab',
-        content_status: 'Idea',
-        format: 'Reel',
-        funnel_stage: 'TOFU',
-        goal_pillar: 'Awareness',
-        producto: 'BecaLab+',
-        red_social: 'Instagram',
-        manychat_automation: 'Simple (solo responder comentarios)',
+        beca_oportunidad: '',
+        descripcion_beca: '',
+        comentarios_extra: '',
+        fecha_entrega: '',
+        fecha_publicacion: '',
+        documentos: [],
+        doc_urls: [''],
+        content_status: 'Aprobado',
+        brand: '@beca_lab',
+        tipo_contenido: 'Post',
+        servicio_producto: 'Contenido orgánico',
+        pilar: 'Descubrimiento',
         hook_text: '',
+        format: 'Reel',
+        enfoque: 'Educativo',
         caption_ai: '',
         manychat_keyword: '',
-        freebie_items: [{ type: 'link', value: '' }], // Can be 'link' or 'file'
-        canva_link: '',
-        ref_urls: [''],
-        upsell_target: 'BecaLab+',
-        scheduled_date: '',
+        micro_app_url: '',
+        correction_comments: '',
         priority: 2,
+        scholarship_ids: [],
     })
     const [loading, setLoading] = useState(false)
+    const [deleting, setDeleting] = useState(false)
+    const [confirmingDelete, setConfirmingDelete] = useState(false)
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
     useEffect(() => {
         if (contentData) {
-            // Parse existing freebie_link into freebie_items array
-            const freebieItems = contentData.freebie_link
-                ? contentData.freebie_link.split(',').map(item => ({
-                    type: item.startsWith('file:') ? 'file' : 'link',
-                    value: item.replace('file:', '')
-                }))
-                : [{ type: 'link', value: '' }]
+            // Parse documentos JSONB
+            const docs = contentData.documentos || []
+            const fileDocs = Array.isArray(docs) ? docs.filter(d => d.type === 'file') : []
+            const urlDocs = Array.isArray(docs) ? docs.filter(d => d.type === 'url').map(d => d.value) : []
 
             setFormData({
-                brand: contentData.brand || 'BecaLab',
-                content_status: contentData.content_status || 'Idea',
-                format: contentData.format || 'Reel',
-                funnel_stage: contentData.funnel_stage || 'TOFU',
-                goal_pillar: contentData.goal_pillar || 'Awareness',
-                producto: contentData.producto || 'BecaLab+',
-                red_social: contentData.red_social || 'Instagram',
-                manychat_automation: contentData.manychat_automation || 'Simple (solo responder comentarios)',
+                beca_oportunidad: contentData.beca_oportunidad || '',
+                descripcion_beca: contentData.descripcion_beca || '',
+                comentarios_extra: contentData.comentarios_extra || '',
+                fecha_entrega: contentData.fecha_entrega || '',
+                fecha_publicacion: contentData.fecha_publicacion || '',
+                documentos: fileDocs,
+                doc_urls: urlDocs.length > 0 ? urlDocs : [''],
+                content_status: contentData.content_status || 'Aprobado',
+                brand: contentData.brand || '@beca_lab',
+                tipo_contenido: contentData.tipo_contenido || 'Post',
+                servicio_producto: contentData.servicio_producto || 'Contenido orgánico',
+                pilar: contentData.pilar || 'Descubrimiento',
                 hook_text: contentData.hook_text || '',
+                format: contentData.format || 'Reel',
+                enfoque: contentData.enfoque || 'Educativo',
                 caption_ai: contentData.caption_ai || '',
                 manychat_keyword: contentData.manychat_keyword || '',
-                freebie_items: freebieItems,
-                canva_link: contentData.canva_link || '',
-                ref_urls: contentData.ref_url ? contentData.ref_url.split(',') : [''],
-                upsell_target: contentData.upsell_target || 'BecaLab+',
-                scheduled_date: contentData.scheduled_date || '',
+                micro_app_url: contentData.micro_app_url || '',
+                correction_comments: contentData.correction_comments || '',
                 priority: contentData.priority || 2,
+                scholarship_ids: contentData.scholarship_ids || [],
             })
         }
     }, [contentData])
 
     useEffect(() => {
         if (!contentData) return
-
-        // Parse original freebie items for comparison
-        const originalFreebieItems = contentData.freebie_link
-            ? contentData.freebie_link.split(',').map(item => ({
-                type: item.startsWith('file:') ? 'file' : 'link',
-                value: item.replace('file:', '')
-            }))
-            : [{ type: 'link', value: '' }]
-
-        // Parse original ref urls for comparison
-        const originalRefUrls = contentData.ref_url ? contentData.ref_url.split(',') : ['']
-
+        // Simple change detection
         const hasChanges =
-            formData.brand !== (contentData.brand || 'BecaLab') ||
-            formData.content_status !== (contentData.content_status || 'Idea') ||
+            formData.beca_oportunidad !== (contentData.beca_oportunidad || '') ||
+            formData.descripcion_beca !== (contentData.descripcion_beca || '') ||
+            formData.comentarios_extra !== (contentData.comentarios_extra || '') ||
+            formData.content_status !== (contentData.content_status || 'Aprobado') ||
+            formData.brand !== (contentData.brand || '@beca_lab') ||
+            formData.tipo_contenido !== (contentData.tipo_contenido || 'Post') ||
             formData.format !== (contentData.format || 'Reel') ||
-            formData.funnel_stage !== (contentData.funnel_stage || 'TOFU') ||
-            formData.goal_pillar !== (contentData.goal_pillar || 'Awareness') ||
-            formData.producto !== (contentData.producto || 'BecaLab+') ||
-            formData.red_social !== (contentData.red_social || 'Instagram') ||
-            formData.manychat_automation !== (contentData.manychat_automation || 'Simple (solo responder comentarios)') ||
-            formData.hook_text.trim() !== (contentData.hook_text || '').trim() ||
-            formData.caption_ai.trim() !== (contentData.caption_ai || '').trim() ||
-            formData.manychat_keyword.trim() !== (contentData.manychat_keyword || '').trim() ||
-            formData.canva_link.trim() !== (contentData.canva_link || '').trim() ||
-            formData.upsell_target !== (contentData.upsell_target || 'BecaLab+') ||
-            formData.scheduled_date !== (contentData.scheduled_date || '') ||
-            formData.priority !== (contentData.priority || 2) ||
-            JSON.stringify(formData.freebie_items) !== JSON.stringify(originalFreebieItems) ||
-            JSON.stringify(formData.ref_urls) !== JSON.stringify(originalRefUrls)
-
+            formData.pilar !== (contentData.pilar || 'Descubrimiento') ||
+            formData.enfoque !== (contentData.enfoque || 'Educativo') ||
+            formData.hook_text !== (contentData.hook_text || '') ||
+            formData.caption_ai !== (contentData.caption_ai || '') ||
+            formData.manychat_keyword !== (contentData.manychat_keyword || '') ||
+            formData.micro_app_url !== (contentData.micro_app_url || '') ||
+            formData.correction_comments !== (contentData.correction_comments || '') ||
+            formData.fecha_entrega !== (contentData.fecha_entrega || '') ||
+            formData.fecha_publicacion !== (contentData.fecha_publicacion || '')
         setHasUnsavedChanges(hasChanges)
     }, [formData, contentData])
 
@@ -97,55 +91,43 @@ export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }
 
     const handleChange = (e) => {
         const { name, value } = e.target
-        setFormData(prev => ({ ...prev, [name]: value }))
+        setFormData(prev => {
+            const updated = { ...prev, [name]: value }
+            if (name === 'fecha_entrega' && value) {
+                const entregaDate = new Date(value)
+                entregaDate.setDate(entregaDate.getDate() + 7)
+                updated.fecha_publicacion = entregaDate.toISOString().split('T')[0]
+            }
+            return updated
+        })
     }
 
-    const handleAddFreebieItem = (type) => {
-        if (formData.freebie_items.length < 5) {
-            setFormData(prev => ({
-                ...prev,
-                freebie_items: [...prev.freebie_items, { type, value: '' }]
-            }))
+    // Enter key on single-line inputs moves focus to next field
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+            e.preventDefault()
+            const form = e.target.form
+            if (!form) return
+            const inputs = Array.from(form.querySelectorAll('input, select, textarea, button[type="submit"]'))
+            const currentIdx = inputs.indexOf(e.target)
+            if (currentIdx > -1 && currentIdx < inputs.length - 1) {
+                inputs[currentIdx + 1].focus()
+            }
         }
     }
 
-    const handleRemoveFreebieItem = (index) => {
-        setFormData(prev => ({
-            ...prev,
-            freebie_items: prev.freebie_items.filter((_, i) => i !== index)
-        }))
-    }
-
-    const handleFreebieItemChange = (index, value) => {
-        setFormData(prev => ({
-            ...prev,
-            freebie_items: prev.freebie_items.map((item, i) =>
-                i === index ? { ...item, value } : item
-            )
-        }))
-    }
-
-    const handleAddRefUrl = () => {
-        if (formData.ref_urls.length < 5) {
-            setFormData(prev => ({
-                ...prev,
-                ref_urls: [...prev.ref_urls, '']
-            }))
+    const handleAddDocUrl = () => {
+        if (formData.doc_urls.length < 5) {
+            setFormData(prev => ({ ...prev, doc_urls: [...prev.doc_urls, ''] }))
         }
     }
 
-    const handleRemoveRefUrl = (index) => {
-        setFormData(prev => ({
-            ...prev,
-            ref_urls: prev.ref_urls.filter((_, i) => i !== index)
-        }))
+    const handleRemoveDocUrl = (index) => {
+        setFormData(prev => ({ ...prev, doc_urls: prev.doc_urls.filter((_, i) => i !== index) }))
     }
 
-    const handleRefUrlChange = (index, value) => {
-        setFormData(prev => ({
-            ...prev,
-            ref_urls: prev.ref_urls.map((url, i) => i === index ? value : url)
-        }))
+    const handleDocUrlChange = (index, value) => {
+        setFormData(prev => ({ ...prev, doc_urls: prev.doc_urls.map((url, i) => i === index ? value : url) }))
     }
 
     const handleClose = () => {
@@ -160,24 +142,20 @@ export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }
     }
 
     const handleBackdropClick = (e) => {
-        if (e.target === e.currentTarget) {
-            handleClose()
-        }
+        if (e.target === e.currentTarget) handleClose()
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-
         try {
             setLoading(true)
 
-            const refUrlsString = formData.ref_urls.filter(url => url.trim() !== '').join(',')
-
-            // Combine freebie items into comma-separated string
-            const freebieString = formData.freebie_items
-                .filter(item => item.value.trim() !== '')
-                .map(item => item.type === 'file' ? `file:${item.value}` : item.value)
-                .join(',')
+            const docsArray = [
+                ...formData.documentos,
+                ...formData.doc_urls
+                    .filter(url => url.trim() !== '')
+                    .map(url => ({ type: 'url', value: url, name: url.split('/').pop() || 'Link' }))
+            ]
 
             const { data, error } = await supabase
                 .from('becacontent_matrix')
@@ -185,20 +163,23 @@ export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }
                     brand: formData.brand,
                     content_status: formData.content_status,
                     format: formData.format,
-                    funnel_stage: formData.funnel_stage,
-                    goal_pillar: formData.goal_pillar,
-                    producto: formData.producto,
-                    red_social: formData.red_social,
-                    manychat_automation: formData.manychat_automation,
+                    beca_oportunidad: formData.beca_oportunidad,
+                    descripcion_beca: formData.descripcion_beca,
+                    comentarios_extra: formData.comentarios_extra,
+                    fecha_entrega: formData.fecha_entrega || null,
+                    fecha_publicacion: formData.fecha_publicacion || null,
+                    documentos: docsArray.length > 0 ? docsArray : null,
+                    tipo_contenido: formData.tipo_contenido,
+                    servicio_producto: formData.servicio_producto,
+                    pilar: formData.pilar,
+                    enfoque: formData.enfoque,
                     hook_text: formData.hook_text,
                     caption_ai: formData.caption_ai,
                     manychat_keyword: formData.manychat_keyword,
-                    freebie_link: freebieString,
-                    canva_link: formData.canva_link,
-                    ref_url: refUrlsString,
-                    upsell_target: formData.upsell_target,
-                    scheduled_date: formData.scheduled_date || null,
+                    micro_app_url: formData.micro_app_url,
+                    correction_comments: formData.correction_comments,
                     priority: formData.priority,
+                    scholarship_ids: formData.scholarship_ids.length > 0 ? formData.scholarship_ids : null,
                 })
                 .eq('id', contentData.id)
                 .select()
@@ -219,346 +200,334 @@ export default function EditIdeaForm({ isOpen, onClose, onSuccess, contentData }
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={handleBackdropClick}>
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
-                    <h2 className="text-2xl font-bold" style={{ color: '#312C8E' }}>✏️ Editar Contenido</h2>
-                    <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
+            <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                {/* Header */}
+                <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10 rounded-t-xl">
+                    <div>
+                        <h2 className="text-2xl font-bold" style={{ color: '#312C8E' }}>✏️ Editar Contenido</h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                            {contentData?.beca_oportunidad || contentData?.hook_text || 'Sin título'}
+                        </p>
+                    </div>
+                    <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Marca *</label>
-                            <select
-                                name="brand"
-                                value={formData.brand}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                            >
-                                <option value="BecaLab">BecaLab</option>
-                                <option value="Ana Cosmica">Ana Cosmica</option>
-                            </select>
-                        </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-8">
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
-                            <select
-                                name="content_status"
-                                value={formData.content_status}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                            >
-                                <option value="Idea">Idea</option>
-                                <option value="Guionizado">Guionizado</option>
-                                <option value="En Grabación">En Grabación</option>
-                                <option value="Edición">Edición</option>
-                                <option value="Programado">Programado</option>
-                                <option value="Publicado">Publicado</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Formato *</label>
-                            <select
-                                name="format"
-                                value={formData.format}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                            >
-                                <option value="Reel">Reel</option>
-                                <option value="Carrusel">Carrusel</option>
-                                <option value="Estático">Estático</option>
-                                <option value="Story">Story</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Red Social *</label>
-                            <select
-                                name="red_social"
-                                value={formData.red_social}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                            >
-                                <option value="Instagram">Instagram</option>
-                                <option value="TikTok">TikTok</option>
-                                <option value="LinkedIn">LinkedIn</option>
-                                <option value="Otro">Otro</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Etapa del Embudo *</label>
-                            <select
-                                name="funnel_stage"
-                                value={formData.funnel_stage}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                            >
-                                <option value="TOFU">TOFU (Viral)</option>
-                                <option value="MOFU">MOFU (Valor/Freebie)</option>
-                                <option value="BOFU">BOFU (Venta/Upsell)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Pilar de Objetivo *</label>
-                            <select
-                                name="goal_pillar"
-                                value={formData.goal_pillar}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                            >
-                                <option value="Awareness">Awareness</option>
-                                <option value="Educación">Educación</option>
-                                <option value="Engagement">Engagement</option>
-                                <option value="Venta Directa">Venta Directa</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Producto *</label>
-                            <select
-                                name="producto"
-                                value={formData.producto}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                            >
-                                <option value="BecaBot WA">BecaBot WA</option>
-                                <option value="BecaBot WEB">BecaBot WEB</option>
-                                <option value="BecaLab+">BecaLab+</option>
-                                <option value="BecaMatch">BecaMatch</option>
-                                <option value="Taller">Taller</option>
-                                <option value="Evento">Evento</option>
-                                <option value="Ferias">Ferias</option>
-                                <option value="Publicidad">Publicidad</option>
-                                <option value="Otros">Otros</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Prioridad</label>
-                            <select
-                                name="priority"
-                                value={formData.priority}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                            >
-                                <option value="3">🟢 Baja</option>
-                                <option value="2">🟡 Media</option>
-                                <option value="1">🔴 Alta</option>
-                            </select>
-                        </div>
-                    </div>
-
+                    {/* SECCIÓN 1: Información de la Beca */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Título o Hook</label>
-                        <textarea
-                            name="hook_text"
-                            value={formData.hook_text}
-                            onChange={handleChange}
-                            rows="2"
-                            placeholder="El gancho inicial que captura atención en los primeros 3 segundos"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Caption o descripción para post</label>
-                        <textarea
-                            name="caption_ai"
-                            value={formData.caption_ai}
-                            onChange={handleChange}
-                            rows="4"
-                            placeholder="El copy completo para el post, incluyendo CTA"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">ManyChat Keyword</label>
-                            <input
-                                type="text"
-                                name="manychat_keyword"
-                                value={formData.manychat_keyword}
-                                onChange={handleChange}
-                                placeholder="ej: EXTENSIÓN"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Automatización ManyChat</label>
-                            <select
-                                name="manychat_automation"
-                                value={formData.manychat_automation}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                            >
-                                <option value="Simple (solo responder comentarios)">Simple (solo responder comentarios)</option>
-                                <option value="Workflow">Workflow</option>
-                            </select>
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: '#312C8E' }}>
+                            <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: '#4B50D0' }}>1</span>
+                            Información de la Beca / Oportunidad
+                        </h3>
+                        <div className="space-y-4 pl-10">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Beca/Oportunidad a publicar</label>
+                                <input type="text" name="beca_oportunidad" value={formData.beca_oportunidad} onChange={handleChange}
+                                    placeholder="Nombre de la beca u oportunidad"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción beca/oportunidad</label>
+                                <textarea name="descripcion_beca" value={formData.descripcion_beca} onChange={handleChange} rows="3"
+                                    placeholder="Cuál es la oportunidad, cómo funciona, deadlines, etc."
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Comentarios extra</label>
+                                <textarea name="comentarios_extra" value={formData.comentarios_extra} onChange={handleChange} rows="2"
+                                    placeholder="Notas adicionales sobre la beca/oportunidad"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent" />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Multiple Freebies */}
+                    {/* SECCIÓN 2: Fechas y Documentos */}
                     <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700">Freebies</label>
-                            {formData.freebie_items.length < 5 && (
-                                <div className="flex gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleAddFreebieItem('link')}
-                                        className="px-3 py-1 text-sm rounded-lg font-semibold transition-all hover:scale-105"
-                                        style={{ backgroundColor: '#D5ED86', color: '#312C8E' }}
-                                    >
-                                        + Agregar Link
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleAddFreebieItem('file')}
-                                        className="px-3 py-1 text-sm rounded-lg font-semibold transition-all hover:scale-105"
-                                        style={{ backgroundColor: '#D5ED86', color: '#312C8E' }}
-                                    >
-                                        + Agregar Archivo
-                                    </button>
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: '#312C8E' }}>
+                            <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: '#4B50D0' }}>2</span>
+                            Fechas y Documentos
+                        </h3>
+                        <div className="space-y-4 pl-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">📅 Fecha de Entrega</label>
+                                    <input type="date" name="fecha_entrega" value={formData.fecha_entrega} onChange={handleChange}
+                                        onClick={(e) => e.target.showPicker?.()}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent cursor-pointer" />
                                 </div>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            {formData.freebie_items.map((item, index) => (
-                                <div key={index} className="space-y-2">
-                                    <div className="flex gap-2 items-center">
-                                        <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 min-w-[70px] text-center">
-                                            {item.type === 'file' ? '📎 Archivo' : '🔗 Link'}
-                                        </span>
-                                        {formData.freebie_items.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveFreebieItem(index)}
-                                                className="px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-all ml-auto"
-                                            >
-                                                🗑️
-                                            </button>
-                                        )}
-                                    </div>
-                                    {item.type === 'file' ? (
-                                        <FileUpload
-                                            bucketName="becacontent-freebies"
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
-                                            maxSizeMB={50}
-                                            onUploadComplete={(data) => {
-                                                handleFreebieItemChange(index, data.url)
-                                            }}
-                                        />
-                                    ) : (
-                                        <input
-                                            type="url"
-                                            value={item.value}
-                                            onChange={(e) => handleFreebieItemChange(index, e.target.value)}
-                                            placeholder="https://..."
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                                        />
-                                    )}
-                                    {item.value && (
-                                        <p className="text-xs text-gray-500 truncate">✅ {item.value}</p>
-                                    )}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">📅 Fecha de Publicación <span className="text-xs text-gray-400">(auto +7 días)</span></label>
+                                    <input type="date" name="fecha_publicacion" value={formData.fecha_publicacion} onChange={handleChange}
+                                        onClick={(e) => e.target.showPicker?.()}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent cursor-pointer" />
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                            </div>
 
-                    {/* Canva Link */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Artes en Canva</label>
-                        <input
-                            type="url"
-                            name="canva_link"
-                            value={formData.canva_link}
-                            onChange={handleChange}
-                            placeholder="https://canva.com/design/..."
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Link al diseño del post o carrusel en Canva</p>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Programada</label>
-                        <input
-                            type="date"
-                            name="scheduled_date"
-                            value={formData.scheduled_date}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                        />
-                    </div>
-
-                    {/* Multiple Reference URLs */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700">URLs de Referencia</label>
-                            {formData.ref_urls.length < 5 && (
-                                <button
-                                    type="button"
-                                    onClick={handleAddRefUrl}
-                                    className="px-3 py-1 text-sm rounded-lg font-semibold transition-all hover:scale-105"
-                                    style={{ backgroundColor: '#D5ED86', color: '#312C8E' }}
-                                >
-                                    + Agregar URL
-                                </button>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            {formData.ref_urls.map((url, index) => (
-                                <div key={index} className="flex gap-2">
-                                    <input
-                                        type="url"
-                                        value={url}
-                                        onChange={(e) => handleRefUrlChange(index, e.target.value)}
-                                        placeholder={`https://instagram.com/... (${index + 1})`}
-                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-becalab-blue focus:border-transparent"
-                                    />
-                                    {formData.ref_urls.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveRefUrl(index)}
-                                            className="px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-all"
-                                        >
-                                            🗑️
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-sm font-medium text-gray-700">📎 Documentos</label>
+                                    {formData.doc_urls.length < 5 && (
+                                        <button type="button" onClick={handleAddDocUrl}
+                                            className="px-3 py-1 text-sm rounded-lg font-semibold transition-all hover:scale-105"
+                                            style={{ backgroundColor: '#D5ED86', color: '#312C8E' }}>
+                                            + Agregar URL
                                         </button>
                                     )}
                                 </div>
-                            ))}
+                                <FileUpload
+                                    bucketName="becacontent-freebies"
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
+                                    maxSizeMB={50}
+                                    onUploadComplete={(data) => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            documentos: [...prev.documentos, { type: 'file', value: data.url, name: data.name || 'Archivo' }]
+                                        }))
+                                    }}
+                                />
+                                {formData.documentos.length > 0 && (
+                                    <div className="mt-2 space-y-2">
+                                        {formData.documentos.map((doc, idx) => {
+                                            const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(doc.value || doc.name || '')
+                                            return (
+                                                <div key={idx} className="flex items-center gap-3 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                                    {isImage ? (
+                                                        <a href={doc.value} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                                                            <img src={doc.value} alt={doc.name} className="w-16 h-16 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity" />
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-lg">📎</span>
+                                                    )}
+                                                    <span className="flex-1 truncate">{doc.name}</span>
+                                                    <button type="button" onClick={() => setFormData(prev => ({
+                                                        ...prev, documentos: prev.documentos.filter((_, i) => i !== idx)
+                                                    }))} className="text-red-500 hover:text-red-700 ml-auto flex-shrink-0">✕</button>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                                <div className="space-y-2 mt-3">
+                                    {formData.doc_urls.map((url, index) => (
+                                        <div key={index} className="flex gap-2">
+                                            <input type="url" value={url} onChange={(e) => handleDocUrlChange(index, e.target.value)}
+                                                placeholder="https://drive.google.com/... o cualquier link"
+                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent text-sm" />
+                                            {formData.doc_urls.length > 1 && (
+                                                <button type="button" onClick={() => handleRemoveDocUrl(index)}
+                                                    className="px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-all">🗑️</button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
+                    {/* SECCIÓN 3: Clasificación */}
+                    <div>
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: '#312C8E' }}>
+                            <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: '#4B50D0' }}>3</span>
+                            Clasificación
+                        </h3>
+                        <div className="space-y-4 pl-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
+                                    <select name="content_status" value={formData.content_status} onChange={handleChange} required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent">
+                                        <option value="Propuesta beca">🎓 Propuesta beca</option>
+                                        <option value="Pendiente aprob.">⏳ Pendiente aprob.</option>
+                                        <option value="Aprobado">✅ Aprobado</option>
+                                        <option value="Corregir">✏️ Corregir</option>
+                                        <option value="Publicado">📤 Publicado</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Cuenta *</label>
+                                    <select name="brand" value={formData.brand} onChange={handleChange} required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent">
+                                        <option value="@beca_lab">@beca_lab</option>
+                                        <option value="@ana.cosmica">@ana.cosmica</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
+                                    <select name="tipo_contenido" value={formData.tipo_contenido} onChange={handleChange} required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent">
+                                        <option value="Post">Post</option>
+                                        <option value="Historia">Historia</option>
+                                        <option value="Reel">Reel</option>
+                                        <option value="Carrusel">Carrusel</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Servicio / Producto</label>
+                                    <select name="servicio_producto" value={formData.servicio_producto} onChange={handleChange}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent">
+                                        <option value="BecaBot WA">BecaBot WA</option>
+                                        <option value="BecaBot WEB">BecaBot WEB</option>
+                                        <option value="BecaMatch gratis">BecaMatch gratis</option>
+                                        <option value="BecaMatch PRO">BecaMatch PRO</option>
+                                        <option value="Extensión Chrome">Extensión Chrome</option>
+                                        <option value="Freebie">Freebie</option>
+                                        <option value="Asesoría aislada">Asesoría aislada</option>
+                                        <option value="webinar">webinar</option>
+                                        <option value="taller propio">taller propio</option>
+                                        <option value="publicidad">publicidad</option>
+                                        <option value="BecaLab+">BecaLab+</option>
+                                        <option value="Contenido orgánico">Contenido orgánico</option>
+                                        <option value="otros">otros</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Pilar</label>
+                                    <select name="pilar" value={formData.pilar} onChange={handleChange}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent">
+                                        <option value="Descubrimiento">Descubrimiento</option>
+                                        <option value="Consideración">Consideración</option>
+                                        <option value="Activación">Activación</option>
+                                        <option value="Conversión">Conversión</option>
+                                        <option value="Fidelización">Fidelización</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {(formData.content_status === 'Corregir' || formData.content_status === 'Pendiente aprob.') && (
+                                <div className={`p-4 rounded-lg border ${formData.content_status === 'Corregir' ? 'bg-orange-50 border-orange-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                                    <label className={`block text-sm font-medium mb-1 ${formData.content_status === 'Corregir' ? 'text-orange-800' : 'text-yellow-800'}`}>✏️ Comentarios de corrección</label>
+                                    <div className="flex gap-2">
+                                        <textarea name="correction_comments" value={formData.correction_comments} onChange={handleChange} rows="2"
+                                            placeholder="¿Qué se necesita corregir?"
+                                            className="flex-1 px-4 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:border-transparent bg-white"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault()
+                                                    const form = e.target.form
+                                                    if (!form) return
+                                                    const inputs = Array.from(form.querySelectorAll('input, select, textarea, button[type="submit"]'))
+                                                    const currentIdx = inputs.indexOf(e.target)
+                                                    if (currentIdx > -1 && currentIdx < inputs.length - 1) {
+                                                        inputs[currentIdx + 1].focus()
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <div className="flex flex-col justify-end">
+                                            <span className="text-xs text-orange-500 mb-1">Enter ↵</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* SECCIÓN 4: Contenido Creativo */}
+                    <div>
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: '#312C8E' }}>
+                            <span className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: '#4B50D0' }}>4</span>
+                            Contenido Creativo
+                        </h3>
+                        <div className="space-y-4 pl-10">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">🎣 Gancho <span className="text-xs text-gray-400">(primeros 2 seg del Reel o primera slide)</span></label>
+                                <textarea name="hook_text" value={formData.hook_text} onChange={handleChange} rows="2"
+                                    placeholder="El hook que captura atención inmediatamente"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent" />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Formato *</label>
+                                    <select name="format" value={formData.format} onChange={handleChange} required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent">
+                                        <option value="Reel">Reel</option>
+                                        <option value="Carrusel">Carrusel</option>
+                                        <option value="Imagen">Imagen</option>
+                                        <option value="Story">Story</option>
+                                        <option value="Video largo">Video largo</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Enfoque</label>
+                                    <select name="enfoque" value={formData.enfoque} onChange={handleChange}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent">
+                                        <option value="Emocional">Emocional</option>
+                                        <option value="Educativo">Educativo</option>
+                                        <option value="Prueba Social">Prueba Social</option>
+                                        <option value="Promocional">Promocional</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">📝 Caption <span className="text-xs text-gray-400">(texto completo con hashtags)</span></label>
+                                <textarea name="caption_ai" value={formData.caption_ai} onChange={handleChange} rows="5"
+                                    placeholder="El copy completo para el post, incluyendo CTA y hashtags"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent" />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">💬 Keyword ManyChat</label>
+                                    <input type="text" name="manychat_keyword" value={formData.manychat_keyword} onChange={handleChange}
+                                        placeholder="ej: EXTENSIÓN" onKeyDown={handleKeyDown}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">🔗 Micro App URL</label>
+                                    <input type="url" name="micro_app_url" value={formData.micro_app_url} onChange={handleChange}
+                                        placeholder="https://..." onKeyDown={handleKeyDown}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Submit */}
                     <div className="flex gap-3 pt-4 border-t border-gray-200">
-                        <button
-                            type="button"
-                            onClick={handleClose}
-                            className="px-6 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-all"
-                        >
+                        <button type="button" onClick={handleClose}
+                            className="px-6 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-all">
                             Cancelar
                         </button>
                         <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 px-6 py-2 rounded-lg font-semibold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{ backgroundColor: '#4B50D0' }}
+                            type="button"
+                            disabled={deleting}
+                            onClick={async () => {
+                                if (!contentData?.id) return
+                                if (!confirmingDelete) {
+                                    setConfirmingDelete(true)
+                                    setTimeout(() => setConfirmingDelete(false), 3000)
+                                    return
+                                }
+                                try {
+                                    setDeleting(true)
+                                    setConfirmingDelete(false)
+                                    const { error } = await supabase.from('becacontent_matrix').delete().eq('id', contentData.id)
+                                    if (error) throw error
+                                    onSuccess?.()
+                                    onClose()
+                                } catch (err) {
+                                    alert('❌ Error al eliminar: ' + err.message)
+                                } finally {
+                                    setDeleting(false)
+                                }
+                            }}
+                            className={`px-5 py-2 rounded-lg font-semibold transition-all disabled:opacity-50 ${confirmingDelete
+                                    ? 'bg-red-500 text-white animate-pulse'
+                                    : 'border border-red-300 text-red-600 hover:bg-red-50'
+                                }`}
                         >
+                            {deleting ? '⏳' : confirmingDelete ? '¿Seguro? Click para confirmar' : '🗑️ Eliminar'}
+                        </button>
+                        <button type="submit" disabled={loading}
+                            className="flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{ backgroundColor: '#4B50D0' }}>
                             {loading ? 'Guardando...' : '✅ Guardar Cambios'}
                         </button>
                     </div>
